@@ -11,14 +11,13 @@ void testHeapAlloc()
     
     
     
-    void* memory = simulation.getAllocator()->allocate(1024);
+    void* memory = simulation.allocator().allocate(1024);
     
     std::memcpy(memory, "Hello, Emper!", 14);
     std::printf("%s\n", static_cast<char*>(memory));
 
     
-    simulation.getAllocator()->deallocate(memory);
-
+    simulation.allocator().deallocate(memory);
 
 
 }

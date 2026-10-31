@@ -18,9 +18,9 @@ public:
     {
     }
 
-    IAllocator* getAllocator() const
+    IAllocator& allocator() const
     {
-        return m_allocator.get();
+        return *m_allocator;
     }
 
 
