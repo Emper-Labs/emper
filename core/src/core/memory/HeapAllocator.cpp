@@ -1,4 +1,4 @@
-#include <emper/core/HeapAllocator.hpp>
+#include <emper/core/memory/HeapAllocator.hpp>
 
 #include <new> //new, delete
 

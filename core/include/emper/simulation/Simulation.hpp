@@ -3,8 +3,8 @@
 #include <memory>
 
 
-#include <emper/core/type.hpp>
-#include <emper/core/IAllocator.hpp>
+#include <emper/type.hpp>
+#include <emper/core/memory/IAllocator.hpp>
 
 namespace emper
 {
@@ -13,10 +13,7 @@ class Simulation
 {
 public:
     ~Simulation() = default;
-    Simulation(std::unique_ptr<emper::IAllocator> allocator)    
-    : m_allocator(std::move(allocator))
-    {
-    }
+    Simulation(std::unique_ptr<emper::IAllocator> allocator);
 
     IAllocator& allocator() const
     {
