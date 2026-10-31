@@ -2,6 +2,9 @@
 
 #include "IAllocator.hpp"
 
+namespace emper
+{
+
 class HeapAllocator final : public IAllocator
 {
 public:
@@ -9,3 +12,5 @@ public:
 
     void deallocate(void* ptr) override;
 };
+
+}

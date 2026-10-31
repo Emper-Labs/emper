@@ -2,6 +2,8 @@
 
 #include "type.hpp"
 
+namespace emper
+{
 
 class IAllocator{
 public:
@@ -11,3 +13,5 @@ public:
     virtual void* allocate(emper::size_t size) = 0;
     virtual void deallocate(void* ptr) = 0;
 };
+
+}
