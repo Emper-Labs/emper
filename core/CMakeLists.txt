@@ -1,5 +1,5 @@
 add_library(emper_core
-    src/Simulation.cpp
+    src/core/HeapAllocator.cpp
 )
 add_library(emper::core ALIAS emper_core)
 
