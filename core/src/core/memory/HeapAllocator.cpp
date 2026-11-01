@@ -2,8 +2,9 @@
 
 #include <new> //new, delete
 
-void* emper::HeapAllocator::allocate(emper::size_t size)
+void* emper::HeapAllocator::allocate(emper::size_t size, emper::size_t alignment)
 {
+    // Note: alignment? later
     return ::operator new(size);
 }
 
