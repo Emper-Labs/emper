@@ -1,0 +1,179 @@
+#include <emper/core/memory/MemoryManager.hpp>
+#include <emper/core/memory/HeapAllocator.hpp>
+
+#include <limits>
+
+namespace emper
+{
+
+DefaultMemoryManager::DefaultMemoryManager()
+    : m_hostAllocator(std::make_unique<HeapAllocator>())
+{
+
+    //later
+    // if(!m_hostAllocator || !m_deviceAllocator || !m_sharedAllocator)
+    // {
+    //     throw std::invalid_argument("Allocators cannot be null");
+    // }
+}
+
+DefaultMemoryManager::~DefaultMemoryManager() noexcept
+{
+    for (auto& record : m_bufferRecords)
+    {
+        if (record.valid)
+        {
+            releaseBuffer(record);
+        }
+    }
+}
+
+emper::Buffer DefaultMemoryManager::createBuffer(
+    const BufferDesc& desc)
+{
+    // 1. select allocator
+
+    IAllocator* allocator = nullptr;
+
+    switch (desc.domain)
+    {
+        case MemoryDomain::Host:
+            allocator = m_hostAllocator.get();
+            break;
+
+        case MemoryDomain::Device:
+            allocator = m_deviceAllocator.get();
+            break;
+
+        case MemoryDomain::Shared:
+            allocator = m_sharedAllocator.get();
+            break;
+
+        default:
+            throw std::runtime_error("Invalid memory domain");
+    }
+
+    if (!allocator)
+    {
+        throw std::runtime_error("Allocator is not available");
+    }
+
+    // 2. find reusable slot
+    BufferRecord* reusableRecord = nullptr;
+    BufferHandle handle{};
+
+    for (u64 i = 0; i < m_bufferRecords.size(); ++i)
+    {
+        auto& record = m_bufferRecords[i];
+
+        if (!record.valid &&
+            record.handle.generation !=
+                std::numeric_limits<u64>::max())
+        {
+            reusableRecord = &record;
+
+            handle.index = i;
+            handle.generation = record.handle.generation + 1;
+
+            break;
+        }
+    }
+
+    // 3. create a new slot if necessary
+    if (!reusableRecord)
+    {
+        handle.index = static_cast<u64>(m_bufferRecords.size());
+        handle.generation = 1;
+    }
+
+    // 4. alloc
+    void* ptr = allocator->allocate(desc.size, desc.alignment);
+
+    if (!ptr)
+    {
+        throw std::bad_alloc();
+    }
+
+    // reg record
+    if (reusableRecord)
+    {
+        reusableRecord->valid = true;
+        reusableRecord->ptr = ptr;
+        reusableRecord->desc = desc;
+        reusableRecord->handle = handle;
+    }
+    else
+    {
+        try
+        {
+            m_bufferRecords.push_back({
+                true,
+                ptr,
+                desc,
+                handle
+            });
+        }
+        catch (...)
+        {
+            allocator->deallocate(ptr);
+            throw;
+        }
+    }
+
+    return Buffer(handle);
+}
+
+void DefaultMemoryManager::destroyBuffer(
+    const Buffer& buffer)
+{
+    if (!buffer.valid())
+    {
+        throw std::invalid_argument("Invalid buffer handle");
+    }
+
+    const BufferHandle& handle = buffer.handle();
+    if (handle.index >= m_bufferRecords.size())
+    {
+        throw std::out_of_range("Buffer index out of range");
+    }
+
+    BufferRecord& record = m_bufferRecords[handle.index];
+    if (!record.valid || record.handle.generation != handle.generation)
+    {
+        throw std::invalid_argument("Buffer has already been destroyed or is invalid");
+    }
+
+    releaseBuffer(record);
+}
+
+void DefaultMemoryManager::releaseBuffer(
+    BufferRecord& record) noexcept
+{
+    IAllocator* allocator = nullptr;
+    switch (record.desc.domain)
+    {
+        case MemoryDomain::Host:
+            allocator = m_hostAllocator.get();
+            break;
+        case MemoryDomain::Device:
+            allocator = m_deviceAllocator.get();
+            break;
+        case MemoryDomain::Shared:
+            allocator = m_sharedAllocator.get();
+            break;
+        default:
+            // This should never happen, but we handle it gracefully
+            return;
+    }
+
+    if (!allocator || !record.ptr)
+        return;
+
+    allocator->deallocate(record.ptr);
+    record.valid = false; // Mark as invalid
+    record.ptr = nullptr; // Clear the pointer
+}
+
+
+
+}

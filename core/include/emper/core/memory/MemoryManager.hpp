@@ -26,6 +26,7 @@ public:
 
 struct BufferRecord{
     bool valid = false;
+    void* ptr = nullptr;
 
     BufferDesc desc;
     BufferHandle handle;
@@ -35,9 +36,7 @@ class DefaultMemoryManager final : public IMemoryManager
 {
 public:
     DefaultMemoryManager(
-        std::unique_ptr<IAllocator> hostAllocator,
-        std::unique_ptr<IAllocator> deviceAllocator,
-        std::unique_ptr<IAllocator> sharedAllocator);
+    );
 
     Buffer createBuffer(
         const BufferDesc& desc) override;
@@ -46,6 +45,11 @@ public:
         const Buffer& buffer) override;
 
 private:    
+
+    void releaseBuffer(
+        BufferRecord& record) noexcept;
+
+
     std::unique_ptr<IAllocator> m_hostAllocator;
     std::unique_ptr<IAllocator> m_deviceAllocator;
     std::unique_ptr<IAllocator> m_sharedAllocator;

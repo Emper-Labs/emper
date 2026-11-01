@@ -58,7 +58,11 @@ class Buffer
 {
 public:
     Buffer(BufferHandle handle) : m_handle(handle) {};
-    bool valid() const noexcept;
+    
+    bool valid() const noexcept{
+        return m_handle.generation != 0;
+    }
+
 
     const BufferHandle& handle() const noexcept
     {
