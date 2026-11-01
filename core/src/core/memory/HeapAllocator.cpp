@@ -8,7 +8,7 @@ void* emper::HeapAllocator::allocate(emper::size_t size, emper::size_t alignment
     return ::operator new(size);
 }
 
-void emper::HeapAllocator::deallocate(void* ptr)
+void emper::HeapAllocator::deallocate(void* ptr) noexcept
 {
     ::operator delete(ptr);
 }
