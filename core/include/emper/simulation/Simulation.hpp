@@ -4,7 +4,7 @@
 
 
 #include <emper/type.hpp>
-#include <emper/core/memory/IAllocator.hpp>
+#include <emper/core/memory/MemoryManager.hpp>
 
 namespace emper
 {
@@ -13,16 +13,19 @@ class Simulation
 {
 public:
     ~Simulation() = default;
-    Simulation(std::unique_ptr<emper::IAllocator> allocator);
+    
+    Simulation();
+    Simulation(std::unique_ptr<emper::IMemoryManager> m_memoryManager);
+    
 
-    IAllocator& allocator() const
+    IMemoryManager& memoryManager() const
     {
-        return *m_allocator;
+        return *m_memoryManager;
     }
 
 
 private:
-    std::unique_ptr<emper::IAllocator> m_allocator;
+    std::unique_ptr<emper::IMemoryManager> m_memoryManager;
 };
 
 }
