@@ -116,7 +116,7 @@ emper::Buffer DefaultMemoryManager::createBuffer(
         }
         catch (...)
         {
-            allocator->deallocate(ptr);
+            allocator->deallocate(ptr, desc.alignment);
             throw;
         }
     }
@@ -175,7 +175,7 @@ void DefaultMemoryManager::releaseBuffer(
     if (!allocator || !record.ptr)
         return;
 
-    allocator->deallocate(record.ptr);
+    allocator->deallocate(record.ptr, record.desc.alignment);
     record.valid = false; // Mark as invalid
     record.ptr = nullptr; // Clear the pointer
 }

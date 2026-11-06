@@ -14,7 +14,7 @@ public:
         emper::size_t size,
         emper::size_t alignment) = 0;
 
-    virtual void deallocate(void* ptr) noexcept = 0;
+    virtual void deallocate(void* ptr, emper::size_t alignment) noexcept = 0;
 };
 
 }

@@ -4,7 +4,9 @@
 
 #include <emper/core/memory/Buffer.hpp>
 
-#include <cstring> //std::memcpy
+#include <cstring>
+#include <cstdint>
+#include <cstddef>
 
 void testHeapAlloc()
 {
@@ -29,7 +31,6 @@ void testHeapAlloc()
         simulation.memoryManager().unmapBuffer(buf);
     }
 }
-
 
 int main()
 {
