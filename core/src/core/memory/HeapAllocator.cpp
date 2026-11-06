@@ -23,7 +23,7 @@ void* emper::HeapAllocator::allocate(size_t size, size_t alignment)
     return ::operator new(size, std::align_val_t(alignment));
 }
 
-void emper::HeapAllocator::deallocate(void* ptr, size_t alignment)
+void emper::HeapAllocator::deallocate(void* ptr, size_t alignment)noexcept
 {
     if (!ptr)
         return;
