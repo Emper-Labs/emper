@@ -144,6 +144,11 @@ void DefaultMemoryManager::destroyBuffer(
         throw std::invalid_argument("Buffer has already been destroyed or is invalid");
     }
 
+    if(record.mapped)
+    {
+        throw std::runtime_error("Cannot destroy a mapped buffer");
+    }
+
     releaseBuffer(record);
 }
 
