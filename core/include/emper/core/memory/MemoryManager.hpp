@@ -69,13 +69,16 @@ public:
 
 private:    
 
+    void validateBufferDesc(const BufferDesc& desc) const;
+    void validateHostAccess(const BufferRecord& record) const;
+    
     void releaseBuffer(
         BufferRecord& record) noexcept;
 
 
     std::unique_ptr<IAllocator> m_hostAllocator;
-    std::unique_ptr<IAllocator> m_deviceAllocator;
-    std::unique_ptr<IAllocator> m_sharedAllocator;
+    // std::unique_ptr<IAllocator> m_deviceAllocator;
+    // std::unique_ptr<IAllocator> m_sharedAllocator;
 
     std::vector<BufferRecord> m_bufferRecords;//dont use erase, just mark as invalid
 };

@@ -31,6 +31,9 @@ DefaultMemoryManager::~DefaultMemoryManager()
 emper::Buffer DefaultMemoryManager::createBuffer(
     const BufferDesc& desc)
 {
+    // 0. validate desc
+    validateBufferDesc(desc);
+
     // 1. select allocator
 
     IAllocator* allocator = nullptr;
@@ -41,13 +44,13 @@ emper::Buffer DefaultMemoryManager::createBuffer(
             allocator = m_hostAllocator.get();
             break;
 
-        case MemoryDomain::Device:
-            allocator = m_deviceAllocator.get();
-            break;
+        // case MemoryDomain::Device:
+        //     allocator = m_deviceAllocator.get();
+        //     break;
 
-        case MemoryDomain::Shared:
-            allocator = m_sharedAllocator.get();
-            break;
+        // case MemoryDomain::Shared:
+        //     allocator = m_sharedAllocator.get();
+        //     break;
 
         default:
             throw std::runtime_error("Invalid memory domain");
@@ -152,34 +155,86 @@ void DefaultMemoryManager::destroyBuffer(
     releaseBuffer(record);
 }
 
+void DefaultMemoryManager::validateBufferDesc(
+    const BufferDesc& desc) const
+{
+    if (desc.size == 0)
+    {
+        throw std::invalid_argument(
+            "Buffer size cannot be zero"
+        );
+    }
+
+    if (desc.alignment == 0 ||
+        (desc.alignment & (desc.alignment - 1)) != 0)
+    {
+        throw std::invalid_argument(
+            "Buffer alignment must be a power of two"
+        );
+    }
+
+    if (desc.domain != MemoryDomain::Host)
+    {
+        throw std::invalid_argument(
+            "Unsupported memory domain"
+        );
+    }
+}
+
 void DefaultMemoryManager::releaseBuffer(
     BufferRecord& record) noexcept
 {
+    if (!record.valid)
+        return;
+
+    if (record.mapped)
+        std::terminate();
+
+    if (!record.ptr)
+        std::terminate();
+
     IAllocator* allocator = nullptr;
+
     switch (record.desc.domain)
     {
         case MemoryDomain::Host:
             allocator = m_hostAllocator.get();
             break;
-        case MemoryDomain::Device:
-            allocator = m_deviceAllocator.get();
-            break;
-        case MemoryDomain::Shared:
-            allocator = m_sharedAllocator.get();
-            break;
+
         default:
-            // This should never happen, but we handle it gracefully
-            return;
+            std::terminate();
     }
 
-    if (!allocator || !record.ptr)
-        return;
+    if (!allocator)
+        std::terminate();
 
-    allocator->deallocate(record.ptr, record.desc.alignment);
-    record.valid = false; // Mark as invalid
-    record.ptr = nullptr; // Clear the pointer
+    allocator->deallocate(
+        record.ptr,
+        record.desc.alignment
+    );
+
+    record.ptr = nullptr;
+    record.mapped = false;
+    record.valid = false;
 }
 
+void DefaultMemoryManager::validateHostAccess(
+    const BufferRecord& record) const
+{
+    if (record.desc.domain != MemoryDomain::Host)
+    {
+        throw std::runtime_error(
+            "Buffer is not host accessible"
+        );
+    }
+
+    if (!record.ptr)
+    {
+        throw std::runtime_error(
+            "Buffer has no host memory allocation"
+        );
+    }
+}
 
 void* DefaultMemoryManager::mapBuffer(const Buffer& buffer)
 {
@@ -199,6 +254,8 @@ void* DefaultMemoryManager::mapBuffer(const Buffer& buffer)
     {
         throw std::invalid_argument("Buffer has already been destroyed or is invalid");
     }
+
+    validateHostAccess(record);
 
     if (record.mapped)
     {
