@@ -17,7 +17,7 @@ DefaultMemoryManager::DefaultMemoryManager()
     // }
 }
 
-DefaultMemoryManager::~DefaultMemoryManager() noexcept
+DefaultMemoryManager::~DefaultMemoryManager()
 {
     for (auto& record : m_bufferRecords)
     {

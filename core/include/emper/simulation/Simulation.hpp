@@ -13,7 +13,10 @@ class Simulation
 {
 public:
     ~Simulation() = default;
+    
+    Simulation();
     Simulation(std::unique_ptr<emper::IMemoryManager> m_memoryManager);
+    
 
     IMemoryManager& memoryManager() const
     {

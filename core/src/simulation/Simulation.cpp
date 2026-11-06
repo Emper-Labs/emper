@@ -1,13 +1,17 @@
 #include <emper/simulation/Simulation.hpp>
 
-
-emper::Simulation::Simulation(std::unique_ptr<emper::IAllocator> allocator)
-    : m_allocator(std::move(allocator))
+namespace emper
 {
-    if (!m_allocator)
-    {
-        throw std::invalid_argument("Allocator cannot be null");
-    }
+
+Simulation::Simulation() 
+: m_memoryManager(std::make_unique<emper::DefaultMemoryManager>()) {
+
 }
 
+Simulation::Simulation(std::unique_ptr<emper::IMemoryManager> memoryManager) 
+: m_memoryManager(std::move(memoryManager)) {
+    
+}
+
+}
 

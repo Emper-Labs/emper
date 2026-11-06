@@ -35,6 +35,8 @@ struct BufferRecord{
 class DefaultMemoryManager final : public IMemoryManager
 {
 public:
+    ~DefaultMemoryManager() noexcept override ;
+
     DefaultMemoryManager(
     );
 
