@@ -22,11 +22,26 @@ public:
     virtual void destroyBuffer(
         const Buffer& buffer) = 0;
 
+
+    //host group
+    
+    virtual void* mapBuffer(
+        const Buffer& buffer) = 0;
+
+    virtual void unmapBuffer(
+        const Buffer& buffer) = 0;
+    
+    //
+
+
 };
 
 struct BufferRecord{
     bool valid = false;
+    bool mapped = false;
+
     void* ptr = nullptr;
+    
 
     BufferDesc desc;
     BufferHandle handle;
@@ -44,6 +59,12 @@ public:
         const BufferDesc& desc) override;
 
     void destroyBuffer(
+        const Buffer& buffer) override;
+    
+    void* mapBuffer(
+        const Buffer& buffer) override;
+
+    void unmapBuffer(
         const Buffer& buffer) override;
 
 private:    

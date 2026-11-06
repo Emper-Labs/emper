@@ -108,6 +108,7 @@ emper::Buffer DefaultMemoryManager::createBuffer(
         {
             m_bufferRecords.push_back({
                 true,
+                false,
                 ptr,
                 desc,
                 handle
@@ -174,6 +175,62 @@ void DefaultMemoryManager::releaseBuffer(
     record.ptr = nullptr; // Clear the pointer
 }
 
+
+void* DefaultMemoryManager::mapBuffer(const Buffer& buffer)
+{
+    if (!buffer.valid())
+    {
+        throw std::invalid_argument("Invalid buffer handle");
+    }
+
+    const BufferHandle& handle = buffer.handle();
+    if (handle.index >= m_bufferRecords.size())
+    {
+        throw std::out_of_range("Buffer index out of range");
+    }
+
+    BufferRecord& record = m_bufferRecords[handle.index];
+    if (!record.valid || record.handle.generation != handle.generation)
+    {
+        throw std::invalid_argument("Buffer has already been destroyed or is invalid");
+    }
+
+    if (record.mapped)
+    {
+        throw std::runtime_error("Buffer is already mapped");
+    }
+
+    record.mapped = true;
+    return record.ptr;
+}
+
+
+void DefaultMemoryManager::unmapBuffer(const Buffer& buffer)
+{
+    if (!buffer.valid())
+    {
+        throw std::invalid_argument("Invalid buffer handle");
+    }
+
+    const BufferHandle& handle = buffer.handle();
+    if (handle.index >= m_bufferRecords.size())
+    {
+        throw std::out_of_range("Buffer index out of range");
+    }
+
+    BufferRecord& record = m_bufferRecords[handle.index];
+    if (!record.valid || record.handle.generation != handle.generation)
+    {
+        throw std::invalid_argument("Buffer has already been destroyed or is invalid");
+    }
+
+    if (!record.mapped)
+    {
+        throw std::runtime_error("Buffer is not mapped");
+    }
+
+    record.mapped = false;
+}
 
 
 }

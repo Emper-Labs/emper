@@ -17,7 +17,17 @@ void testHeapAlloc()
         emper::BufferUsage::None
     });
     
+    void* ptr = simulation.memoryManager().mapBuffer(buf);
+    if (ptr)
+    {
+        const char* testData = "Hello, Emper!";
+        std::memcpy(ptr, testData, std::strlen(testData) + 1);
 
+        std::printf("Buffer content: %s\n", static_cast<const char*>(ptr));
+
+
+        simulation.memoryManager().unmapBuffer(buf);
+    }
 }
 
 
