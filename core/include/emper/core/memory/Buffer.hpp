@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <emper/type.hpp>
+#include <new>
 
 
 namespace emper
@@ -81,6 +82,58 @@ public:
 
     virtual size_t size() const = 0;
 };
+
+
+class HostBufferResource final : public IBufferResource
+{
+public:
+
+    //using unique_ptr not just cp
+    HostBufferResource(const HostBufferResource&) = delete; 
+    HostBufferResource& operator=(const HostBufferResource&) = delete;
+ 
+
+    HostBufferResource(IAllocator& allocator,
+        size_t size,
+        size_t alignment) : 
+      m_allocator(&allocator) , m_size(size),m_alignment(alignment)
+    { 
+      m_ptr = m_allocator->allocate(m_size,m_alignment);
+      if(!m_ptr){
+        throw std::bad_alloc{};
+      }  
+    }
+
+    ~HostBufferResource() noexcept
+    {
+      if(m_ptr)
+        m_allocator->deallocate(m_ptr,m_alignment);
+    }
+
+
+  
+    size_t size() const noexcept override{
+        return m_size;
+    }
+
+
+    void* data() noexcept{
+      return m_ptr;
+    }
+
+    const void* data() const noexcept {
+        return m_ptr;        
+    }
+
+private:
+    IAllocator* m_allocator = nullptr; // this ptr will allway able
+    void* m_ptr = nullptr;
+
+    size_t m_size = 0;
+    size_t m_alignment = 0;
+};
+
+
 
 /*
 
