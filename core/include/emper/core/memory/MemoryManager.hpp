@@ -40,11 +40,10 @@ struct BufferRecord{
     bool valid = false;
     bool mapped = false;
 
-    void* ptr = nullptr;
-    
-
     BufferDesc desc;
     BufferHandle handle;
+    
+    std::unique_ptr<IBufferResource> resource;
 };
 
 class DefaultMemoryManager final : public IMemoryManager
