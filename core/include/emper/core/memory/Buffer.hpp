@@ -1,7 +1,7 @@
 #pragma once 
 
-#include <emper/type.hpp>
 
+#include <emper/type.hpp>
 
 namespace emper
 {
@@ -71,15 +71,6 @@ public:
 
 private:
     BufferHandle m_handle = {0,0};
-};
-
-
-class IBufferResource
-{
-public:
-    virtual ~IBufferResource() = default;
-
-    virtual size_t size() const = 0;
 };
 
 /*

@@ -1,3 +1,4 @@
+#include <emper/core/memory/DefaultMemoryManager.hpp>
 #include <emper/simulation/Simulation.hpp>
 
 namespace emper

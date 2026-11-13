@@ -1,6 +1,8 @@
-#include <emper/core/memory/MemoryManager.hpp>
+#include <emper/core/memory/DefaultMemoryManager.hpp>
 #include <emper/core/memory/HeapAllocator.hpp>
+#include <emper/core/memory/HostBufferResource.hpp>
 
+#include <emper/core/memory/Buffer.hpp>
 #include <limits>
 
 namespace emper
@@ -90,38 +92,33 @@ emper::Buffer DefaultMemoryManager::createBuffer(
     }
 
     // 4. alloc
-    void* ptr = allocator->allocate(desc.size, desc.alignment);
-
-    if (!ptr)
-    {
-        throw std::bad_alloc();
+    std::unique_ptr<IBufferResource> res;
+  
+    if(desc.domain == MemoryDomain::Host){
+        
+        res = std::make_unique<HostBufferResource>(
+            *allocator,
+            desc.size, 
+            desc.alignment);
     }
 
     // reg record
     if (reusableRecord)
     {
         reusableRecord->valid = true;
-        reusableRecord->ptr = ptr;
         reusableRecord->desc = desc;
         reusableRecord->handle = handle;
+        reusableRecord->resource = std::move(res);
     }
     else
     {
-        try
-        {
-            m_bufferRecords.push_back({
-                true,
-                false,
-                ptr,
-                desc,
-                handle
-            });
-        }
-        catch (...)
-        {
-            allocator->deallocate(ptr, desc.alignment);
-            throw;
-        }
+        m_bufferRecords.push_back({
+            true,
+            false,
+            desc,
+            handle,
+            std::move(res)
+        });
     }
 
     return Buffer(handle);
@@ -190,30 +187,8 @@ void DefaultMemoryManager::releaseBuffer(
     if (record.mapped)
         std::terminate();
 
-    if (!record.ptr)
-        std::terminate();
+    record.resource.reset();
 
-    IAllocator* allocator = nullptr;
-
-    switch (record.desc.domain)
-    {
-        case MemoryDomain::Host:
-            allocator = m_hostAllocator.get();
-            break;
-
-        default:
-            std::terminate();
-    }
-
-    if (!allocator)
-        std::terminate();
-
-    allocator->deallocate(
-        record.ptr,
-        record.desc.alignment
-    );
-
-    record.ptr = nullptr;
     record.mapped = false;
     record.valid = false;
 }
@@ -228,7 +203,8 @@ void DefaultMemoryManager::validateHostAccess(
         );
     }
 
-    if (!record.ptr)
+    if (!dynamic_cast<HostBufferResource*>(
+            record.resource.get()))
     {
         throw std::runtime_error(
             "Buffer has no host memory allocation"
@@ -262,8 +238,12 @@ void* DefaultMemoryManager::mapBuffer(const Buffer& buffer)
         throw std::runtime_error("Buffer is already mapped");
     }
 
+    auto* resource = dynamic_cast<HostBufferResource*>(
+        record.resource.get()
+    );
+
     record.mapped = true;
-    return record.ptr;
+    return resource->map();
 }
 
 
