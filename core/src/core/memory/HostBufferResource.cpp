@@ -1,3 +1,5 @@
+
+#include <new>
 #include <emper/core/memory/HostBufferResource.hpp>
 
 namespace emper

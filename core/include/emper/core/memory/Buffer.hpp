@@ -1,12 +1,7 @@
 #pragma once 
 
 
-#include <emper/core/memory/IAllocator.hpp>
 #include <emper/type.hpp>
-
-#include <memory>
-#include <new>
-
 
 namespace emper
 {
@@ -77,20 +72,6 @@ public:
 private:
     BufferHandle m_handle = {0,0};
 };
-
-
-class IBufferResource
-{
-public:
-    virtual ~IBufferResource() = default;
-
-    virtual size_t size() const = 0;
-
-    virtual void* map() = 0;
-    virtual void unmap() = 0;
-};
-
-
 
 /*
 

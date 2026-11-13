@@ -4,7 +4,7 @@
 
 
 #include <emper/type.hpp>
-#include <emper/core/memory/MemoryManager.hpp>
+#include <emper/core/memory/IMemoryManager.hpp>
 
 namespace emper
 {

@@ -1,5 +1,7 @@
 #pragma once
-#include <emper/core/memory/Buffer.hpp> 
+
+#include <emper/core/memory/IAllocator.hpp>
+#include <emper/core/memory/IBufferResource.hpp> 
 
 namespace emper
 {

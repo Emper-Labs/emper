@@ -1,4 +1,4 @@
-#include <emper/core/memory/MemoryManager.hpp>
+#include <emper/core/memory/DefaultMemoryManager.hpp>
 #include <emper/core/memory/HeapAllocator.hpp>
 #include <emper/core/memory/HostBufferResource.hpp>
 
