@@ -15,7 +15,7 @@ public:
     ~Simulation() = default;
     
     Simulation();
-    Simulation(std::unique_ptr<emper::IMemoryManager> m_memoryManager);
+    Simulation(std::unique_ptr<emper::IMemoryManager> memoryManager);
     
 
     IMemoryManager& memoryManager() const
