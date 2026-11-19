@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <emper/core/memory/DefaultMemoryManager.hpp>
 #include <emper/simulation/Simulation.hpp>
 
@@ -18,14 +20,38 @@ Simulation::Simulation(std::unique_ptr<emper::IMemoryManager> memoryManager, Sim
 
 bool Simulation::initialize() {
     // Initialize simulation resources here
+    m_context.lastTick = Clock::now();
     m_context.state = SimulationState::Initialized;
+    
     return true;
 }
 
 void Simulation::tick(f64 dt) {
-    // Update simulation state based on the time step dt
+    if (!running())
+        return;
+
+    if (!std::isfinite(dt) || dt < 0.0)
+        return;
+
+    if (m_context.state == SimulationState::Initialized)
+        m_context.state = SimulationState::Running;
+
+    m_context.elapsedTime += dt;
+    ++m_context.tickCount;
+
+    // Update systems
 }
 
+void Simulation::tick(){
+    const auto now = Clock::now();
+
+    const f64 dt =
+        std::chrono::duration<f64>(now - m_context.lastTick).count();
+
+    m_context.lastTick = now;
+
+    tick(dt);
+}
 
 void Simulation::shutdown() {
     // Clean up simulation resources here

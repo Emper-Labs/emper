@@ -1,5 +1,6 @@
 add_executable(core_func_test
     main.cpp
+    LifeCycle.cpp
     HostBufferResourceTests.cpp
     HeapAllocatorTests.cpp
 )

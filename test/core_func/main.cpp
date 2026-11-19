@@ -15,6 +15,10 @@ void testHostBufferResourceWriteRead();
 void testHostBufferResourceAlignment();
 void testHostBufferResourceDestruction();
 
+//LifeCycle tests
+void testSimulationLifeCycle();
+
+
 int main()
 {
     // HeapAllocator
@@ -32,8 +36,10 @@ int main()
     testHostBufferResourceWriteRead();
     testHostBufferResourceAlignment();
     testHostBufferResourceDestruction();
-
-    std::printf("\nAll memory tests passed.\n");
+    
+    // LifeCycle
+    std::printf("\nSimulation LifeCycle tests:\n");
+    testSimulationLifeCycle();
 
     return 0;
 }

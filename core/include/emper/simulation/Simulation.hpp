@@ -1,10 +1,12 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
-
-
 #include <emper/type.hpp>
 #include <emper/core/memory/IMemoryManager.hpp>
+
+using Clock =  std::chrono::steady_clock;
+
 
 namespace emper
 {
@@ -13,6 +15,7 @@ enum class SimulationState : u8
 {
     Created,
     Initialized,
+    Running,
     Shutdown,
     Failed
 };
@@ -23,10 +26,14 @@ struct SimulationConfig
 };
 
 struct SimulationContext
-{
+{   
+    SimulationConfig config;
+
     SimulationState state = SimulationState::Created;
     
-    SimulationConfig config;
+    f64 elapsedTime = 0.0;
+    u64 tickCount = 0;
+    Clock::time_point lastTick;
 };
 
 
@@ -38,12 +45,17 @@ public:
     Simulation(SimulationConfig config = SimulationConfig());
     Simulation(std::unique_ptr<emper::IMemoryManager> memoryManager,SimulationConfig config = SimulationConfig());
     
-
-
-
     bool initialize();
+    
     void tick(f64 dt);
+    void tick();
+
     void shutdown();
+
+    bool running() const noexcept{
+        return m_context.state == SimulationState::Initialized 
+        || m_context.state == SimulationState::Running;
+    }
 
     const SimulationContext& context() const{
         return m_context;
