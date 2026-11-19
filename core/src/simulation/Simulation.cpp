@@ -3,26 +3,44 @@
 #include <emper/core/memory/DefaultMemoryManager.hpp>
 #include <emper/simulation/Simulation.hpp>
 
-namespace emper
-{
+namespace emper {
 
-Simulation::Simulation(SimulationConfig config) 
-: m_memoryManager(std::make_unique<emper::DefaultMemoryManager>()), m_context() {
-    m_context.state = SimulationState::Created;
+Simulation::Simulation(SimulationConfig config)
+    : m_memoryManager(std::make_unique<DefaultMemoryManager>()),
+      m_context()
+{
     m_context.config = config;
 }
 
-Simulation::Simulation(std::unique_ptr<emper::IMemoryManager> memoryManager, SimulationConfig config) 
-: m_memoryManager(std::move(memoryManager)), m_context() {
-    m_context.state = SimulationState::Created;
+Simulation::Simulation(
+    std::unique_ptr<IMemoryManager> memoryManager,
+    SimulationConfig config
+)
+    : m_memoryManager(std::move(memoryManager)),
+      m_context()
+{
     m_context.config = config;
 }
 
 bool Simulation::initialize() {
-    // Initialize simulation resources here
+    if (m_context.state != SimulationState::Uninitialized)
+        return false;
+
+    if (!m_memoryManager) {
+        m_context.state = SimulationState::Failed;
+        return false;
+    }
+
+    // Initialize simulation resources
+    // Initialize SystemScheduler
+    if (!m_systemScheduler.initialize(m_systemContext)) {
+        m_context.state = SimulationState::Failed;
+        return false;
+    }
+
     m_context.lastTick = Clock::now();
     m_context.state = SimulationState::Initialized;
-    
+
     return true;
 }
 
@@ -36,13 +54,16 @@ void Simulation::tick(f64 dt) {
     if (m_context.state == SimulationState::Initialized)
         m_context.state = SimulationState::Running;
 
+    //m_systemScheduler.update(m_systemContext, dt);
+
     m_context.elapsedTime += dt;
     ++m_context.tickCount;
-
-    // Update systems
 }
 
-void Simulation::tick(){
+void Simulation::tick() {
+    if (!running())
+        return;
+
     const auto now = Clock::now();
 
     const f64 dt =
@@ -54,9 +75,15 @@ void Simulation::tick(){
 }
 
 void Simulation::shutdown() {
-    // Clean up simulation resources here
+    if (m_context.state == SimulationState::Shutdown ||
+        m_context.state == SimulationState::Uninitialized)
+        return;
+
+    m_systemScheduler.shutdown(m_systemContext);
+
+    // Cleanup simulation resources
+
     m_context.state = SimulationState::Shutdown;
 }
 
 }
-

@@ -1,6 +1,7 @@
 add_library(emper_core
     src/simulation/Simulation.cpp
-    
+    src/simulation/SystemScheduler.cpp
+
     src/core/memory/HostBufferResource.cpp
     src/core/memory/HeapAllocator.cpp  
     src/core/memory/DefaultMemoryManager.cpp

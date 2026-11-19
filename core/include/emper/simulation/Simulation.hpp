@@ -3,7 +3,9 @@
 #include <chrono>
 #include <memory>
 #include <emper/type.hpp>
+
 #include <emper/core/memory/IMemoryManager.hpp>
+#include <emper/simulation/SystemScheduler.hpp>
 
 using Clock =  std::chrono::steady_clock;
 
@@ -13,7 +15,7 @@ namespace emper
 
 enum class SimulationState : u8
 {
-    Created,
+    Uninitialized,
     Initialized,
     Running,
     Shutdown,
@@ -29,7 +31,7 @@ struct SimulationContext
 {   
     SimulationConfig config;
 
-    SimulationState state = SimulationState::Created;
+    SimulationState state = SimulationState::Uninitialized;
     
     f64 elapsedTime = 0.0;
     u64 tickCount = 0;
@@ -67,7 +69,11 @@ public:
     }
 private:
     SimulationContext m_context;
-    std::unique_ptr<emper::IMemoryManager> m_memoryManager;    
+    SystemContext m_systemContext;
+    
+    emper::SystemScheduler m_systemScheduler;
+
+    std::unique_ptr<emper::IMemoryManager> m_memoryManager;
 };
 
 }

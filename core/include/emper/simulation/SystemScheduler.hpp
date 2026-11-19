@@ -6,9 +6,16 @@
 
 namespace emper {
 
-struct SystemSchedulerContext
-{
-    u32 m_initializedCount = 0;
+enum class SystemSchedulerState : u8 {
+    Uninitialized,
+    Initialized,
+    Failed,
+    Shutdown
+};
+
+struct SystemSchedulerContext {
+    SystemSchedulerState state = SystemSchedulerState::Uninitialized;
+    u32 initializedCount = 0;
 };
 
 class SystemScheduler {
