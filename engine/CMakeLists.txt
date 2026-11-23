@@ -1,4 +1,4 @@
-add_library(emper_core
+add_library(emper_engine
     src/simulation/Simulation.cpp
     src/simulation/SystemScheduler.cpp
 
@@ -6,9 +6,9 @@ add_library(emper_core
     src/core/memory/HeapAllocator.cpp  
     src/core/memory/DefaultMemoryManager.cpp
 )
-add_library(emper::core ALIAS emper_core)
+add_library(emper::engine ALIAS emper_engine)
 
-target_include_directories(emper_core PUBLIC
+target_include_directories(emper_engine PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-target_compile_features(emper_core PUBLIC cxx_std_20)
+target_compile_features(emper_engine PUBLIC cxx_std_20)

@@ -5,4 +5,4 @@ add_executable(core_func_test
     HeapAllocatorTests.cpp
 )
 
-target_link_libraries(core_func_test PRIVATE emper::core)
+target_link_libraries(core_func_test PRIVATE emper::engine)
