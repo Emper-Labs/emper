@@ -13,8 +13,8 @@ The project aims to provide a foundation for building simulations across differe
 
 ## Project Structure
 
-- `core/` — Core engine infrastructure.
-- `test/` — Core tests.
+- `engine/` — engine infrastructure.
+- `test/` — engine tests.
 
 ## Build
 

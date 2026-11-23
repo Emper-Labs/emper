@@ -16,7 +16,9 @@ struct StorageRecord
     //std::vector<Buffer> buffers;
 };
 
+class Storage{
 
+};
 
 
 }
