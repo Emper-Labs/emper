@@ -68,12 +68,13 @@ public:
         return *m_memoryManager;
     }
 private:
+    std::unique_ptr<emper::IMemoryManager> m_memoryManager;
+
     SimulationContext m_context;
     SystemContext m_systemContext;
-    
+
     emper::SystemScheduler m_systemScheduler;
 
-    std::unique_ptr<emper::IMemoryManager> m_memoryManager;
 };
 
 }

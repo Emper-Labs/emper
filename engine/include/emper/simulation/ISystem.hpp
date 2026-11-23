@@ -5,8 +5,10 @@
 namespace emper{
 
 
+class Storage; 
 struct SystemContext
 {
+    Storage* storage = nullptr;
 };
 
 class ISystem

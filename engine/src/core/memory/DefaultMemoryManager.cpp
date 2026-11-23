@@ -242,8 +242,14 @@ void* DefaultMemoryManager::mapBuffer(const Buffer& buffer)
         record.resource.get()
     );
 
+    void*ptr = resource->map();
+    if(!ptr){
+        record.mapped=false;
+        return nullptr;
+    }
+
     record.mapped = true;
-    return resource->map();
+    return ptr;
 }
 
 
@@ -272,6 +278,7 @@ void DefaultMemoryManager::unmapBuffer(const Buffer& buffer)
     }
 
     record.mapped = false;
+    record.resource->unmap();
 }
 
 
