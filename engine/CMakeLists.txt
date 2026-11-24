@@ -5,6 +5,7 @@ add_library(emper_engine
     src/core/memory/HostBufferResource.cpp
     src/core/memory/HeapAllocator.cpp  
     src/core/memory/DefaultMemoryManager.cpp
+    src/core/memory/Storage.cpp
 )
 add_library(emper::engine ALIAS emper_engine)
 

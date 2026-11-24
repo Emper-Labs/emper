@@ -10,11 +10,11 @@
 
 using namespace emper;
 
-bool isAligned(const void* ptr, size_t alignment)
-{
-    const auto address = reinterpret_cast<std::uintptr_t>(ptr);
-    return address % alignment == 0;
-}
+ bool isAligned(const void* ptr, size_t alignment);
+// {
+//     const auto address = reinterpret_cast<std::uintptr_t>(ptr);
+//     return address % alignment == 0;
+// }
 
 // Test 1: Creation
 void testHostBufferResourceCreation()

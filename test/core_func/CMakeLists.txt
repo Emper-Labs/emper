@@ -3,6 +3,7 @@ add_executable(core_func_test
     LifeCycle.cpp
     HostBufferResourceTests.cpp
     HeapAllocatorTests.cpp
+    StorageTests.cpp
 )
 
 target_link_libraries(core_func_test PRIVATE emper::engine)
