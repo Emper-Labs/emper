@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <utility>
 #include <vector>
+#include <type_traits>
 
 #include <emper/type.hpp>
 #include <emper/core/memory/Buffer.hpp>
@@ -35,26 +36,12 @@ struct StorageHandle
     u64 generation;
 };
 
-// ---------------------------------------------------------------------------
-// SoA layout description.
-//
-// A record layout is simply an ordered list of fields. Each field is a typed
-// SoA array: `Field<T>` declares that the record has one array `T[]`.
-//
-//   using ParticleLayout = SoALayout<
-//       Field<vec3>,   // field 0  (position)
-//       Field<vec3>,   // field 1  (velocity)
-//       Field<f32>>;   // field 2  (mass)
-//
-// The layout is the compile-time identity of the record type: two records
-// created with the same layout are interchangeable; a handle used with a
-// different layout is rejected as mismatched.
-// ---------------------------------------------------------------------------
 
-template <typename T>
+template <typename T, typename Tag = void>
 struct Field
 {
     using Type = T;
+    using TagType = Tag;
 
     static constexpr size_t alignment = alignof(T);
 };
@@ -67,8 +54,34 @@ struct SoALayout
 
 namespace detail
 {
+template <typename T, typename... Fields>
+inline constexpr u64 FieldTagCount =
+    (u64{0} + ... +
+     (std::is_same_v<T, typename Fields::TagType> ? u64{1} : u64{0}));
 
-// Typelist lookup: the field type at index I inside a SoALayout.
+template <typename Tag, typename... Fields>
+consteval u64 FindFieldIndex()
+{
+    if constexpr (sizeof...(Fields) == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        constexpr bool matches[] = {
+            std::is_same_v<Tag, typename Fields::TagType>...
+        };
+
+        for (u64 i = 0; i < sizeof...(Fields); ++i)
+        {
+            if (matches[i])
+                return i;
+        }
+
+        return 0;
+    }
+}
+
 template <u64 I, typename... Fields>
 struct FieldAt
 {
@@ -91,11 +104,24 @@ struct LayoutFieldAt;
 template <u64 I, typename... Fields>
 struct LayoutFieldAt<I, SoALayout<Fields...>>
 {
-    static_assert(I < SoALayout<Fields...>::fieldCount,
+    static_assert(I < sizeof...(Fields),
                   "Field index out of range");
+
     using Type = typename FieldAt<I, Fields...>::Type;
 };
 
+template <typename Tag, typename Layout>
+struct LayoutFieldIndex;
+
+template <typename Tag, typename... Fields>
+struct LayoutFieldIndex<Tag, SoALayout<Fields...>>
+{
+    static_assert(
+        FieldTagCount<Tag, Fields...> == 1,
+        "Field tag must appear exactly once in layout");
+
+    static constexpr u64 value = FindFieldIndex<Tag, Fields...>();
+};
 } // namespace detail
 
 // ---------------------------------------------------------------------------
@@ -246,6 +272,20 @@ public:
         {
             return static_cast<T*>(m_fields[I]);
         }
+    }
+
+    template <typename Tag>
+    auto field() const noexcept
+    {   
+        constexpr u64 index =
+            detail::LayoutFieldIndex<Tag, Layout>::value;
+
+        using T = typename detail::LayoutFieldAt<index, Layout>::Type;
+
+        if constexpr (Mode == Access::Read)
+            return static_cast<const T*>(m_fields[index]);
+        else
+            return static_cast<T*>(m_fields[index]);
     }
 
     u64 count() const noexcept

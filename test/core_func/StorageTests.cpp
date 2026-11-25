@@ -19,10 +19,15 @@ struct vec3
     f32 x, y, z;
 };
 
+struct Position {};
+struct Velocity {};
+struct Mass {};
+
 using ParticleLayout = SoALayout<
-    Field<vec3>,   // field 0 : position
-    Field<vec3>,   // field 1 : velocity
-    Field<f32>>;   // field 2 : mass
+    Field<vec3, Position>,
+    Field<vec3, Velocity>,
+    Field<f32, Mass>
+>;
 
 using ThreeU64Layout = SoALayout<
     Field<u64>,
@@ -353,24 +358,33 @@ void testReadWriteViews()
     // Write view exposes mutable storage.
     {
         auto view = storage.view<ParticleLayout, Access::Write>(handle);
-        view.field<0>()[0] = vec3{3.0f, 3.0f, 3.0f};
-        view.field<2>()[0] = 10.0f;
 
+        view.field<Position>()[0] = vec3{3.0f, 3.0f, 3.0f};
+        view.field<Velocity>()[0] = vec3{1.0f, 0.0f, 0.0f};
+        view.field<Mass>()[0] = 10.0f;
     }
 
+    // ReadWrite view also exposes mutable storage.
     {
-        
-        // ReadWrite also exposes mutable storage.
         auto rw = storage.view<ParticleLayout, Access::ReadWrite>(handle);
-        rw.field<0>()[1] = vec3{4.0f, 4.0f, 4.0f};
+
+        rw.field<Position>()[1] = vec3{4.0f, 4.0f, 4.0f};
+        rw.field<Velocity>()[1] = vec3{0.0f, 1.0f, 0.0f};
+        rw.field<Mass>()[1] = 20.0f;
     }
-    
-    // Read view reads back the values.
+
+    // Read view exposes immutable storage.
     {
         auto view = storage.view<ParticleLayout, Access::Read>(handle);
-        assert(view.field<0>()[0].y == 3.0f);
-        assert(view.field<0>()[1].y == 4.0f);
-        assert(view.field<2>()[0] == 10.0f);
+
+        assert(view.field<Position>()[0].y == 3.0f);
+        assert(view.field<Position>()[1].y == 4.0f);
+
+        assert(view.field<Velocity>()[0].x == 1.0f);
+        assert(view.field<Velocity>()[1].y == 1.0f);
+
+        assert(view.field<Mass>()[0] == 10.0f);
+        assert(view.field<Mass>()[1] == 20.0f);
     }
 
     std::printf("[PASS] Read And Write Views\n");
