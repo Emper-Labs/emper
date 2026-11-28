@@ -507,3 +507,14 @@ void testMismatchedLayoutHandle()
 
     std::printf("[PASS] Mismatched Layout Handle\n");
 }
+
+// 
+// struct Shape //non trivially copyable
+// {
+//     float area = 0.0f;
+//     virtual ~Shape() = default;
+// };
+
+// void testTriviallyCopyable(){
+//     [[maybe_unused]] Field<Shape> bad1;
+// }
