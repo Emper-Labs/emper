@@ -39,7 +39,9 @@ struct alignas(64) Aligned64
     u64 value;
 };
 
-using AlignLayout = SoALayout<Field<Aligned64>>;
+using AlignLayout = SoALayout<
+    Field<Aligned64>
+>;
 
 template<typename Exception, typename Func>
 void expectThrow(Func&& func)
@@ -141,23 +143,23 @@ void testMultipleInstances()
 
     // Independent writes must not leak across records.
     {
-        auto va = storage.view<ParticleLayout, Access::Write>(a);
-        va.field<0>()[0] = vec3{1.0f, 2.0f, 3.0f};
-        va.field<2>()[0] = 99.0f;
+        auto va = storage.view<ParticleLayout, Access::ReadWrite>(a);
+        va.field<Position>()[0] = vec3{1.0f, 2.0f, 3.0f};
+        va.field<Mass>()[0] = 99.0f;
     }
     {
-        auto vb = storage.view<ParticleLayout, Access::Write>(b);
-        vb.field<0>()[0] = vec3{7.0f, 8.0f, 9.0f};
-        vb.field<2>()[0] = 42.0f;
+        auto vb = storage.view<ParticleLayout, Access::ReadWrite>(b);
+        vb.field<Position>()[0] = vec3{7.0f, 8.0f, 9.0f};
+        vb.field<Mass>()[0] = 42.0f;
     }
 
     auto va = storage.view<ParticleLayout, Access::Read>(a);
     auto vb = storage.view<ParticleLayout, Access::Read>(b);
 
-    assert(va.field<0>()[0].x == 1.0f);
-    assert(va.field<2>()[0] == 99.0f);
-    assert(vb.field<0>()[0].x == 7.0f);
-    assert(vb.field<2>()[0] == 42.0f);
+    assert(va.field<Position>()[0].x == 1.0f);
+    assert(va.field<Mass>()[0] == 99.0f);
+    assert(vb.field<Position>()[0].x == 7.0f);
+    assert(vb.field<Mass>()[0] == 42.0f);
 
     std::printf("[PASS] Multiple Instances Of Same Type\n");
 }
@@ -279,21 +281,21 @@ void testSoAFieldAccess()
     StorageHandle handle = storage.create<ParticleLayout>(8);
 
     {
-        auto view = storage.view<ParticleLayout, Access::Write>(handle);
-        view.field<0>()[0] = vec3{1.0f, 2.0f, 3.0f};
-        view.field<0>()[1] = vec3{4.0f, 5.0f, 6.0f};
-        view.field<1>()[0] = vec3{9.0f, 8.0f, 7.0f};
-        view.field<2>()[0] = 0.5f;
-        view.field<2>()[7] = 2.5f;
+        auto view = storage.view<ParticleLayout, Access::ReadWrite>(handle);
+        view.field<Position>()[0] = vec3{1.0f, 2.0f, 3.0f};
+        view.field<Position>()[1] = vec3{4.0f, 5.0f, 6.0f};
+        view.field<Velocity>()[0] = vec3{9.0f, 8.0f, 7.0f};
+        view.field<Mass>()[0] = 0.5f;
+        view.field<Mass>()[7] = 2.5f;
     }
 
     auto view = storage.view<ParticleLayout, Access::Read>(handle);
 
-    assert(view.field<0>()[0].x == 1.0f);
-    assert(view.field<0>()[1].z == 6.0f);
-    assert(view.field<1>()[0].y == 8.0f);
-    assert(view.field<2>()[0] == 0.5f);
-    assert(view.field<2>()[7] == 2.5f);
+    assert(view.field<Position>()[0].x == 1.0f);
+    assert(view.field<Position>()[1].z == 6.0f);
+    assert(view.field<Velocity>()[0].y == 8.0f);
+    assert(view.field<Mass>()[0] == 0.5f);
+    assert(view.field<Mass>()[7] == 2.5f);
 
     std::printf("[PASS] SoA Field Access\n");
 }
@@ -310,7 +312,7 @@ void testFieldIsolation()
     StorageHandle handle = storage.create<ParticleLayout>(4);
 
     {
-        auto view = storage.view<ParticleLayout, Access::Write>(handle);
+        auto view = storage.view<ParticleLayout, Access::ReadWrite>(handle);
 
         // Fill each field with a distinct non-overlapping pattern and make sure
         // writing one field never touches a sibling field's buffer.
@@ -319,15 +321,15 @@ void testFieldIsolation()
 
         for (size_t i = 0; i < 4; ++i)
         {
-            view.field<0>()[i] = v0;
-            view.field<1>()[i] = v1;
-            view.field<2>()[i] = static_cast<f32>(i);
+            view.field<Position>()[i] = v0;
+            view.field<Velocity>()[i] = v1;
+            view.field<Mass>()[i] = static_cast<f32>(i);
         }
 
         // Rewrite the velocity field; positions and masses must be untouched.
         for (size_t i = 0; i < 4; ++i)
         {
-            view.field<1>()[i] = vec3{2.0f, 2.0f, 2.0f};
+            view.field<Velocity>()[i] = vec3{2.0f, 2.0f, 2.0f};
         }
     }
 
@@ -335,10 +337,10 @@ void testFieldIsolation()
 
     for (size_t i = 0; i < 4; ++i)
     {
-        assert(view.field<0>()[i].x == 1.0f);
-        assert(view.field<0>()[i].y == 0.0f);
-        assert(view.field<1>()[i].x == 2.0f);
-        assert(view.field<2>()[i] == static_cast<f32>(i));
+        assert(view.field<Position>()[i].x == 1.0f);
+        assert(view.field<Position>()[i].y == 0.0f);
+        assert(view.field<Velocity>()[i].x == 2.0f);
+        assert(view.field<Mass>()[i] == static_cast<f32>(i));
     }
 
     std::printf("[PASS] Field Isolation\n");
@@ -357,7 +359,7 @@ void testReadWriteViews()
 
     // Write view exposes mutable storage.
     {
-        auto view = storage.view<ParticleLayout, Access::Write>(handle);
+        auto view = storage.view<ParticleLayout, Access::ReadWrite>(handle);
 
         view.field<Position>()[0] = vec3{3.0f, 3.0f, 3.0f};
         view.field<Velocity>()[0] = vec3{1.0f, 0.0f, 0.0f};
@@ -402,14 +404,14 @@ void testRejectSimultaneousViews()
     StorageHandle handle = storage.create<ParticleLayout>(8);
 
     {
-        auto first = storage.view<ParticleLayout, Access::Write>(handle);
+        auto first = storage.view<ParticleLayout, Access::ReadWrite>(handle);
 
         expectThrow<std::runtime_error>(
             [&]() { storage.view<ParticleLayout, Access::Read>(handle); });
         expectThrow<std::runtime_error>(
             [&]() { storage.view<ParticleLayout, Access::ReadWrite>(handle); });
         expectThrow<std::runtime_error>(
-            [&]() { storage.view<ParticleLayout, Access::Write>(handle); });
+            [&]() { storage.view<ParticleLayout, Access::ReadWrite>(handle); });
     }
 
     auto second = storage.view<ParticleLayout, Access::Read>(handle);
@@ -430,7 +432,7 @@ void testRejectDestroyWithActiveView()
     StorageHandle handle = storage.create<ParticleLayout>(8);
 
     {
-        auto view = storage.view<ParticleLayout, Access::Write>(handle);
+        auto view = storage.view<ParticleLayout, Access::ReadWrite>(handle);
 
         expectThrow<std::runtime_error>(
             [&]() { storage.destroy(handle); });

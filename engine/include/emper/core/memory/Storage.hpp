@@ -21,8 +21,7 @@ namespace emper
 enum class Access : u8
 {
     Read      = 0,
-    Write     = 1,
-    ReadWrite = 2
+    ReadWrite = 1
 };
 
 // ---------------------------------------------------------------------------
