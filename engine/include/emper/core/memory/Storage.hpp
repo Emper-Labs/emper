@@ -39,6 +39,11 @@ struct StorageHandle
 template <typename T, typename Tag = void>
 struct Field
 {
+    static_assert(
+        std::is_trivially_copyable_v<T>,
+        "Storage fields must be trivially copyable"
+    );
+
     using Type = T;
     using TagType = Tag;
 
