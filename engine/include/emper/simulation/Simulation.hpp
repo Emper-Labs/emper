@@ -6,6 +6,7 @@
 
 #include <emper/core/memory/IMemoryManager.hpp>
 #include <emper/simulation/SystemScheduler.hpp>
+#include <emper/core/memory/Storage.hpp>
 
 using Clock =  std::chrono::steady_clock;
 
@@ -67,14 +68,24 @@ public:
     {
         return *m_memoryManager;
     }
+
+    Storage& storage() noexcept
+    {
+        return *m_storage;
+    }
+    
+    const Storage& storage() const
+    {
+        return *m_storage;
+    }
+
 private:
     std::unique_ptr<emper::IMemoryManager> m_memoryManager;
+    std::unique_ptr<emper::Storage> m_storage;
 
     SimulationContext m_context;
     SystemContext m_systemContext;
-
     emper::SystemScheduler m_systemScheduler;
-
 };
 
 }

@@ -7,6 +7,7 @@ namespace emper {
 
 Simulation::Simulation(SimulationConfig config)
     : m_memoryManager(std::make_unique<DefaultMemoryManager>()),
+        m_storage(std::make_unique<Storage>(*m_memoryManager)),
       m_context()
 {
     m_context.config = config;
@@ -17,6 +18,7 @@ Simulation::Simulation(
     SimulationConfig config
 )
     : m_memoryManager(std::move(memoryManager)),
+      m_storage(std::make_unique<Storage>(*m_memoryManager)),
       m_context()
 {
     m_context.config = config;
