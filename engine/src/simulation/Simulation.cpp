@@ -10,6 +10,7 @@ Simulation::Simulation(SimulationConfig config)
         m_storage(std::make_unique<Storage>(*m_memoryManager)),
       m_context()
 {
+    m_systemContext.storage = m_storage.get();
     m_context.config = config;
 }
 
@@ -21,6 +22,7 @@ Simulation::Simulation(
       m_storage(std::make_unique<Storage>(*m_memoryManager)),
       m_context()
 {
+    m_systemContext.storage = m_storage.get();
     m_context.config = config;
 }
 
