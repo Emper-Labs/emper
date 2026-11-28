@@ -379,7 +379,13 @@ StorageHandle Storage::create(size_t capacity)
         {
             reusableRecord = &record;
             handle.index = i;
-            handle.generation = record.generation + 1;
+
+            if(std::numeric_limits<u64>::max() ==  record.generation)
+            {
+                reusableRecord = nullptr;
+            }
+            else handle.generation = record.generation + 1;
+            
             break;
         }
     }
@@ -391,8 +397,12 @@ StorageHandle Storage::create(size_t capacity)
     }
 
     // Phase 3: build the runtime record.
-    std::vector<FieldBufferInfo> fieldInfos;
-    fieldInfos.reserve(Layout::fieldCount);
+
+    try{
+        std::vector<FieldBufferInfo> fieldInfos;
+        fieldInfos.reserve(Layout::fieldCount);
+    
+
 
     [&]<u64... Is>(std::index_sequence<Is...>)
     {
@@ -403,6 +413,8 @@ StorageHandle Storage::create(size_t capacity)
          }), ...), 0);
     }(std::make_index_sequence<Layout::fieldCount>{});
 
+
+    
     if (reusableRecord)
     {
         *reusableRecord = StorageRecord{
@@ -426,6 +438,15 @@ StorageHandle Storage::create(size_t capacity)
             &typeid(Layout),
             std::move(fieldInfos),
         });
+    }
+    }    
+    catch (...)
+    {
+        for (auto& buffer : fieldBuffers)
+        {
+            m_memoryManager.destroyBuffer(buffer);
+        }
+        throw;
     }
 
     return handle;
